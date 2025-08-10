@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/github_repository_explorer.iml" filepath="$PROJECT_DIR$/github_repository_explorer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/git_repo_explorer.iml" filepath="$PROJECT_DIR$/git_repo_explorer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/git_repo_explorer_android.iml" filepath="$PROJECT_DIR$/android/git_repo_explorer_android.iml" />
     </modules>
   </component>
 </project>

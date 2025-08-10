@@ -1,10 +1,5 @@
-import '../entities/repo_entity.dart';
-import '../failures/failure.dart';
-import 'package:dartz/dartz.dart';
-
+import '../../data/models/repo_dto.dart';
 abstract class RepoRepository {
-  Future<Either<Failure, List<RepoEntity>>> getRepos({
-    required int page,
-    int perPage = 100,
-  });}
-
+  /// Returns (data, isFromCache)
+  Future<(List<RepoDto>, bool)> search({required String query, required int page, int perPage});
+}

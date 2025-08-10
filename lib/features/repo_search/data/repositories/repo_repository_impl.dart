@@ -1,63 +1,55 @@
-import 'dart:convert';
-
-import 'package:dartz/dartz.dart';
-import 'package:hive/hive.dart';
-
-import '../../domain/entities/repo_entity.dart';
-import '../../domain/failures/failure.dart';
+import '../../../../app/core/error/failures.dart';
+import '../../../../app/core/network/network_info.dart';
 import '../../domain/repositories/repo_repository.dart';
+import '../datasources/github_local_data_source.dart';
 import '../datasources/github_remote_data_source.dart';
-import '../models/repo_model.dart';
+import '../models/repo_dto.dart';
+
 
 class RepoRepositoryImpl implements RepoRepository {
-  final GithubRemoteDataSource remoteDataSource;
-  final Box<String> reposBox;  // Store JSON strings now
+  final GithubRemoteDataSource remote;
+  final GithubLocalDataSource local;
+  final NetworkInfo networkInfo;
+  RepoRepositoryImpl({required this.remote, required this.local, required this.networkInfo});
 
-  RepoRepositoryImpl(this.remoteDataSource, this.reposBox);
+  String _key(String query,int page,int perPage) => '$query|$page|$perPage';
 
   @override
-  Future<Either<Failure, List<RepoEntity>>> getRepos({
+  Future<(List<RepoDto>, bool)> search({
+    required String query,
     required int page,
-    int perPage = 100,
+    int perPage = 20,
   }) async {
-    final cacheKey = page.toString();
+    final cacheKey = _key(query, page, perPage);
 
-    try {
-      if (reposBox.containsKey(cacheKey)) {
-        final cachedJson = reposBox.get(cacheKey);
-        if (cachedJson != null && cachedJson.isNotEmpty) {
-          // Decode JSON string to List<RepoModel>
-          final List<dynamic> jsonList = jsonDecode(cachedJson);
-          final cachedRepos = jsonList
-              .map((json) => RepoModel.fromJson(json as Map<String, dynamic>))
-              .toList();
-          return Right(cachedRepos.cast<RepoEntity>());
-        }
+    // If online, try remote first
+    if (await networkInfo.isConnected) {
+      try {
+        final data = await remote.search(query: query, page: page, perPage: perPage);
+        await local.cache(cacheKey, data);
+        return (data, false); // fresh
+      } catch (e) {
+        // 1) Try cached page
+        final cached = await local.read(cacheKey);
+        if (cached != null) return (cached, true);
+
+        // 2) If this was a next-page request, don't kill the list—just return empty
+        if (page > 1) return (<RepoDto>[], true);
+
+        // 3) First page and no cache: surface a readable server failure
+        throw ServerFailure(
+          e is Failure ? e.message : (e is Exception ? e.toString() : 'Server error'),
+        );
       }
-
-      // Fetch from remote source
-      final remoteRepos = await remoteDataSource.getRepos(page, perPage: perPage);
-
-      // Convert models to JSON list
-      final jsonList = remoteRepos.map((repo) => repo.toJson()).toList();
-      final jsonString = jsonEncode(jsonList);
-
-      // Cache the JSON string
-      await reposBox.put(cacheKey, jsonString);
-
-      return Right(remoteRepos.cast<RepoEntity>());
-    } on ServerException {
-      final cachedJson = reposBox.get(cacheKey);
-      if (cachedJson != null && cachedJson.isNotEmpty) {
-        final List<dynamic> jsonList = jsonDecode(cachedJson);
-        final cachedRepos = jsonList
-            .map((json) => RepoModel.fromJson(json as Map<String, dynamic>))
-            .toList();
-        return Right(cachedRepos.cast<RepoEntity>());
-      }
-      return Left(ServerFailure('Failed to fetch repos from server'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
     }
+
+    // Offline: serve cache if possible
+    final cached = await local.read(cacheKey);
+    if (cached != null) return (cached, true);
+
+    // For next pages offline, keep existing list by returning empty
+    if (page > 1) return (<RepoDto>[], true);
+
+    throw const NetworkFailure('No internet connection');
   }
 }

@@ -1,22 +1,38 @@
-// repo_state.dart
+part of 'repo_bloc.dart';
 
-import '../../domain/entities/repo_entity.dart';
+class RepoState extends Equatable {
+  final List<RepoDto> items;
+  final bool fromCache;
+  final bool loading;
+  final bool paging;
+  final bool canLoadMore;
+  final String? error;
 
-abstract class RepoState {}
+  const RepoState(
+      {this.items = const [],
+      this.fromCache = false,
+      this.loading = false,
+      this.paging = false,
+      this.canLoadMore = false,
+      this.error});
 
-class RepoInitial extends RepoState {}
+  const RepoState.initial() : this();
 
-class RepoLoading extends RepoState {}
+  const RepoState.loading() : this(loading: true);
 
-class RepoLoaded extends RepoState {
-  final List<RepoEntity> repos;
-  final bool hasMore;
+  const RepoState.paging(
+      {required List<RepoDto> items, required bool fromCache})
+      : this(items: items, fromCache: fromCache, paging: true);
 
-  RepoLoaded({required this.repos, required this.hasMore});
+  const RepoState.success(
+      {required List<RepoDto> items,
+      required bool fromCache,
+      required bool canLoadMore})
+      : this(items: items, fromCache: fromCache, canLoadMore: canLoadMore);
+
+  const RepoState.failure(String err) : this(error: err);
+
+  @override
+  List<Object?> get props =>
+      [items, fromCache, loading, paging, canLoadMore, error];
 }
-
-class RepoError extends RepoState {
-  final String message;
-  RepoError(this.message);
-}
-

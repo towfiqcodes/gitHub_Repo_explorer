@@ -1,4 +1,4 @@
-package com.example.github_repository_explorer
+package com.example.git_repo_explorer
 
 import io.flutter.embedding.android.FlutterActivity
 

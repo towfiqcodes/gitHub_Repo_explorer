@@ -1,12 +1,20 @@
-// repo_event.dart
 part of 'repo_bloc.dart';
 
-abstract class RepoEvent {}
-
-class FetchReposEvent extends RepoEvent {
-  final int page;
-  final bool append;
-
-  FetchReposEvent({required this.page, this.append = false});
+abstract class RepoEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
 }
 
+class RepoQueryChanged extends RepoEvent {
+  final String query;
+
+  RepoQueryChanged(this.query);
+}
+
+class RepoNextPageRequested extends RepoEvent {}
+
+class RepoRefreshRequested extends RepoEvent {}
+
+
+
+class RepoRetryRequested extends RepoEvent {}
