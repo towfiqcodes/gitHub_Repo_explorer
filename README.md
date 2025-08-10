@@ -57,7 +57,7 @@ Unauthenticated GitHub Search API is rate-limited. Pass a token at run/build tim
 -> SnackBar + inline Retry on error</br>
 -> Global Theme toggle (light/dark) in the AppBar</br>
 
-Important Files that is overview for all the folder 
+Important Files that is overview for all the folder </br>
  -> app/di/injector.dart – Registers Dio, data sources, repo, use cases</br>
 -> features/repo_search/data/datasources/github_remote_data_source.dart – Search API, Dio error mapping (rate limit, HTTP codes)</br>
 -> features/repo_search/data/datasources/github_local_data_source.dart – Hive JSON cache per (query|page|size)</br>
