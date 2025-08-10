@@ -12,7 +12,7 @@ Environment Setup </br>
 **Set a GitHub token** </br>
 Unauthenticated GitHub Search API is rate-limited. Pass a token at run/build time</br>
 -> flutter run --dart-define=GITHUB_TOKEN=your github token here</br>
-# or</br>
+ or</br>
 ->  IOS Build: flutter build ios  --dart-define=GITHUB_TOKEN=your github token here</br>
 ->  Android build: flutter build apk  --dart-define=GITHUB_TOKEN=your github token here</br>
 
